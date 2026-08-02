@@ -10,7 +10,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<link rel="stylesheet" href="assets/css/dashboard.css?v=20260724-2">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=20260724-5">
 </head>
 <body>
 
@@ -179,7 +179,7 @@
     </div>
     <div class="card card-b">
       <div class="card-head">Full ranked table of occupations</div>
-      <div class="card-sub">The same ranking in tabular form, including the parent ISCO-3 minor group, the leading employer sector and the leading region for each occupation.</div>
+      <div class="card-sub">The same ranking in tabular form, including the leading employer sector and the leading region for each occupation.</div>
       <div class="tbl-wrap" id="tier-occ-table"></div>
     </div>
   </div>
@@ -312,10 +312,10 @@
   </div>
 </section>
 
-<!-- ====== CLASSIFICATIONS (ISCO-3 & ISCO-4, and by region) ====== -->
+<!-- ====== CLASSIFICATIONS (ISCO-4 occupations, ISIC-2 sectors, by region) ====== -->
 <section id="tab-classify" class="tab-panel" hidden>
   <div class="insight-box">
-    <b>Standardised occupational classifications.</b> Every posting carries two ISCO-08 levels: the 3-digit <b>minor group (ISCO-3)</b> and the 4-digit <b>unit group (ISCO-4)</b>. They are shown separately as code-labelled tables, and then broken down <b>by region</b> — which occupations each state actually demands, and where each occupation concentrates. All header filters apply.
+    <b>Standardised classifications.</b> Postings are classified two ways: by occupation at the 4-digit <b>ISCO-08 unit-group (ISCO-4)</b> level, and by employer sector at the 2-digit <b>ISIC Rev.4 division (ISIC-2)</b> level. The <b>ISCO-4 Occupations</b> and <b>Employer Sectors (ISIC-2)</b> sub-tabs each carry a ranked chart and a full code-labelled listing; <b>By Region</b> breaks occupational demand down by state. All header filters apply.
   </div>
 
   <div class="sub-tab-nav">
@@ -402,14 +402,43 @@
 <div id="static-tabs"><!-- About/Methods, Qualifications etc. injected from /content --></div>
 
 <footer id="footer">
-  GATI Foundation · <span id="foot-sector">Sector</span> Labour Market Intelligence · Data: StepStone Germany · Classification: ISCO-08 (ILO), employer sector (ISIC Rev.4) · Build 20260724-2
+  GATI Foundation · <span id="foot-sector">Sector</span> Labour Market Intelligence · Data: StepStone Germany · Classification: ISCO-08 (ILO), employer sector (ISIC Rev.4) · Build 20260724-5
 </footer>
 
-<script src="assets/js/sectors.js?v=20260724-2"></script>
-<script src="assets/js/data-loader.js?v=20260724-2"></script>
-<script src="assets/js/requirements-extractor.js?v=20260724-2"></script>
-<script src="assets/js/role-meta.js?v=20260724-2"></script>
-<script src="assets/js/chart-kit.js?v=20260724-2"></script>
-<script src="assets/js/dashboard.js?v=20260724-2"></script>
+<script src="assets/js/sectors.js?v=20260724-5"></script>
+<script src="assets/js/data-loader.js?v=20260724-5"></script>
+<script src="assets/js/requirements-extractor.js?v=20260724-5"></script>
+<script src="assets/js/role-meta.js?v=20260724-5"></script>
+<script src="assets/js/chart-kit.js?v=20260724-5"></script>
+<script src="assets/js/dashboard.js?v=20260724-5"></script>
+
+<!-- Back-to-top button -->
+<style>
+  #to-top{position:fixed;right:20px;bottom:22px;z-index:1200;width:44px;height:44px;border:none;
+    border-radius:50%;background:#0F5B5A;color:#fff;cursor:pointer;box-shadow:0 6px 18px rgba(15,46,46,.28);
+    display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transform:translateY(10px);
+    transition:opacity .25s ease, transform .25s ease, background .18s ease, box-shadow .18s ease}
+  #to-top.show{opacity:1;visibility:visible;transform:none}
+  #to-top:hover{background:#1A7B7A;box-shadow:0 8px 22px rgba(15,46,46,.36)}
+  #to-top:focus-visible{outline:2px solid #D4940A;outline-offset:2px}
+  #to-top svg{width:20px;height:20px;display:block}
+  @media (max-width:520px){#to-top{right:14px;bottom:16px;width:40px;height:40px}}
+</style>
+<button id="to-top" aria-label="Back to top" title="Back to top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 19V5M5 12l7-7 7 7"/>
+  </svg>
+</button>
+<script>
+  (function(){
+    var btn=document.getElementById('to-top');
+    if(!btn) return;
+    function onScroll(){ (window.pageYOffset||document.documentElement.scrollTop)>300 ? btn.classList.add('show') : btn.classList.remove('show'); }
+    window.addEventListener('scroll',onScroll,{passive:true});
+    btn.addEventListener('click',function(){ window.scrollTo({top:0,behavior:'smooth'}); });
+    onScroll();
+  })();
+</script>
+
 </body>
 </html>

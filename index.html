@@ -111,7 +111,7 @@
   <footer class="ft">GATI Foundation · The Convergence Foundation · Data classified to ISCO-08 (ILO) and ISIC Rev.4 (UN)</footer>
 </div>
 
-<script src="assets/js/sectors.js?v=20260724-2"></script>
+<script src="assets/js/sectors.js?v=20260724-5"></script>
 <script>
   /* rotating quotes during the loader */
   var QUOTES = [
@@ -148,5 +148,34 @@
     }, 5000);
   })();
 </script>
+
+<!-- Back-to-top button -->
+<style>
+  #to-top{position:fixed;right:20px;bottom:22px;z-index:1200;width:44px;height:44px;border:none;
+    border-radius:50%;background:#0F5B5A;color:#fff;cursor:pointer;box-shadow:0 6px 18px rgba(15,46,46,.28);
+    display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transform:translateY(10px);
+    transition:opacity .25s ease, transform .25s ease, background .18s ease, box-shadow .18s ease}
+  #to-top.show{opacity:1;visibility:visible;transform:none}
+  #to-top:hover{background:#1A7B7A;box-shadow:0 8px 22px rgba(15,46,46,.36)}
+  #to-top:focus-visible{outline:2px solid #D4940A;outline-offset:2px}
+  #to-top svg{width:20px;height:20px;display:block}
+  @media (max-width:520px){#to-top{right:14px;bottom:16px;width:40px;height:40px}}
+</style>
+<button id="to-top" aria-label="Back to top" title="Back to top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 19V5M5 12l7-7 7 7"/>
+  </svg>
+</button>
+<script>
+  (function(){
+    var btn=document.getElementById('to-top');
+    if(!btn) return;
+    function onScroll(){ (window.pageYOffset||document.documentElement.scrollTop)>300 ? btn.classList.add('show') : btn.classList.remove('show'); }
+    window.addEventListener('scroll',onScroll,{passive:true});
+    btn.addEventListener('click',function(){ window.scrollTo({top:0,behavior:'smooth'}); });
+    onScroll();
+  })();
+</script>
+
 </body>
 </html>

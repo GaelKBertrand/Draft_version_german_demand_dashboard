@@ -938,7 +938,7 @@ function renderFullTable(){
     '<button style="'+(EXP_PAGE>=totalPages-1?btnOff:btnOn)+'" '+(EXP_PAGE>=totalPages-1?'disabled':'')+' onclick="EXP_PAGE=Math.min(window._expTotalPages-1,EXP_PAGE+1);renderFullTable()">Next</button>';
 }
 
-/* ======= CLASSIFICATIONS (ISCO-3 & ISCO-4, national + regional) ========== */
+/* ======= CLASSIFICATIONS (ISCO-4 occupations + ISIC-2 sectors, national + regional) === */
 var CLS_VIEW='national';
 function showClassView(v, btn){
   CLS_VIEW=v;
@@ -986,24 +986,18 @@ function renderClassSectors(rows){
 function renderClassNational(rows){
   renderSummaries();
   var total = rows.length;
-  var c3 = {};
-  rows.forEach(function(r){ if(!isNaN(r[3])) c3[r[3]] = (c3[r[3]]||0)+1; });
-  var t3 = Object.keys(c3).map(function(code){
-    var c = parseInt(code,10);
-    return { code:c, name:isco3Name(c), count:c3[code] };
-  }).sort(function(a,b){return b.count-a.count;});
 
   var c4 = {}, meta4 = {};
   rows.forEach(function(r){
     var nm = r[4]>=0 ? DATA.lookup.isco4[r[4]] : null; if(!nm) return;
     c4[nm] = (c4[nm]||0)+1;
-    if(!meta4[nm]) meta4[nm] = { code:(DATA.isco4CodeByName&&DATA.isco4CodeByName[nm])||'', isco3:r[3] };
+    if(!meta4[nm]) meta4[nm] = { code:(DATA.isco4CodeByName&&DATA.isco4CodeByName[nm])||'' };
   });
   var t4 = Object.keys(c4).map(function(nm){
-    return { code:meta4[nm].code, name:nm, isco3:meta4[nm].isco3, count:c4[nm] };
+    return { code:meta4[nm].code, name:nm, count:c4[nm] };
   }).sort(function(a,b){return b.count-a.count;});
   classBar('isco4-chart', t4.slice(0,12), total, C.gold);
-  classTable('isco4-table', t4, total, ['ISCO-4','Unit Group','Postings','Share'], true);
+  classTable('isco4-table', t4, total, ['ISCO-4','Unit Group','Postings','Share']);
 
   /* headline classification counts */
   kpi('cls-k1', fmt(t4.length), 'ISCO-4 Unit Groups Found', 'Distinct four-digit occupations identified in the current selection');
@@ -1086,18 +1080,13 @@ function renderRegionProfile(){
   var rows=getRows().filter(function(r){ return r[0]===si; });
   var total=rows.length;
 
-  var c3={};
-  rows.forEach(function(r){ if(!isNaN(r[3])) c3[r[3]]=(c3[r[3]]||0)+1; });
-  var t3=Object.keys(c3).map(function(c){ return {code:parseInt(c,10),name:isco3Name(c),count:c3[c]}; })
-    .sort(function(a,b){return b.count-a.count;});
-
   var c4={},m4={};
   rows.forEach(function(r){
     var nm=r[4]>=0?DATA.lookup.isco4[r[4]]:null; if(!nm) return;
     c4[nm]=(c4[nm]||0)+1;
-    if(!m4[nm]) m4[nm]={code:(DATA.isco4CodeByName&&DATA.isco4CodeByName[nm])||'',isco3:r[3]};
+    if(!m4[nm]) m4[nm]={code:(DATA.isco4CodeByName&&DATA.isco4CodeByName[nm])||''};
   });
-  var t4=Object.keys(c4).map(function(nm){ return {code:m4[nm].code,name:nm,isco3:m4[nm].isco3,count:c4[nm]}; })
+  var t4=Object.keys(c4).map(function(nm){ return {code:m4[nm].code,name:nm,count:c4[nm]}; })
     .sort(function(a,b){return b.count-a.count;});
 
   if(!total){
@@ -1105,22 +1094,21 @@ function renderRegionProfile(){
     document.getElementById('cls-rp-isco4').innerHTML=msg;
     return;
   }
-  classTable('cls-rp-isco4', t4, total, ['ISCO-4','Unit Group','Postings','Share of '+st], true);
+  classTable('cls-rp-isco4', t4, total, ['ISCO-4','Unit Group','Postings','Share of '+st]);
 }
 
 function classBar(id, arr, total, col){
   hBar(id, arr.map(function(d){ return { label:d.name, code:d.code, count:d.count }; }),
        { total:total, color:col, wrap:26, ofWhat:'postings',
-         title:(col===PAL.gold?'ISCO-4 unit groups':'ISCO-3 minor groups') });
+         title:'ISCO-4 unit groups' });
 }
-function classTable(id, arr, total, heads, withParent){
+function classTable(id, arr, total, heads){
   var html='<table class="data-tbl"><thead><tr>'+heads.map(function(h){return '<th>'+esc(h)+'</th>';}).join('')+
-    (withParent?'<th>Parent ISCO-3</th>':'')+'</tr></thead><tbody>';
+    '</tr></thead><tbody>';
   arr.forEach(function(d){
-    html+='<tr><td><span class="badge'+(withParent?' badge-g':'')+'">'+esc(String(d.code||'—'))+'</span></td>'+
+    html+='<tr><td><span class="badge badge-g">'+esc(String(d.code||'—'))+'</span></td>'+
       '<td><b>'+esc(d.name)+'</b></td><td class="cnt">'+fmt(d.count)+'</td>'+
-      '<td class="num">'+pct(d.count,total)+'%</td>'+
-      (withParent?'<td class="num">'+esc(String(d.isco3||'—'))+'</td>':'')+'</tr>';
+      '<td class="num">'+pct(d.count,total)+'%</td></tr>';
   });
   document.getElementById(id).innerHTML=html+'</tbody></table>';
 }
@@ -1439,16 +1427,14 @@ function tierOccupations(rows){
              var n = sub.filter(function(r){ return r[1]>=0 && DATA.lookup.isic[r[1]]===sec; }).length;
              return sub.length ? +(n/sub.length*100).toFixed(1) : 0; })); }) });
   }
-  var h = '<table class="data-tbl"><thead><tr><th>Rank</th><th>ISCO-4</th><th>Occupation</th><th>Parent ISCO-3</th>'+
+  var h = '<table class="data-tbl"><thead><tr><th>Rank</th><th>ISCO-4</th><th>Occupation</th>'+
           '<th>Postings</th><th>Share</th><th>Leading '+catL()+'</th><th>Leading region</th></tr></thead><tbody>';
   top.forEach(function(d, i){
     var sub = byOcc[d.label] || [];
     var code = (DATA.isco4CodeByName&&DATA.isco4CodeByName[d.label]) || '—';
-    var parent = sub.length ? sub[0][3] : '';
     h += '<tr><td class="num">'+(i+1)+'</td>'+
          '<td><span class="badge">'+esc(String(code))+'</span></td>'+
          '<td><b>'+esc(d.label)+'</b></td>'+
-         '<td>'+esc(String(parent||'—'))+' '+esc(isco3Name(parent))+'</td>'+
          '<td class="cnt">'+fmt(d.count)+'</td><td class="num">'+d.share.toFixed(1)+'%</td>'+
          '<td>'+esc(leadBy(sub, function(r){ return r[1]>=0 ? DATA.lookup.isic[r[1]] : null; }))+'</td>'+
          '<td>'+esc(leadBy(sub, function(r){ return r[0]>=0 ? DATA.lookup.states[r[0]] : null; }))+'</td></tr>';
