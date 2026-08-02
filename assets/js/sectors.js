@@ -40,7 +40,8 @@ const SECTORS = [
     /* Optional narrative tabs loaded from /content at runtime. Remove to hide. */
     staticTabs: [
       { id: "about", label: "About & Methods",        file: "content/healthcare-about.html" },
-      { id: "quals", label: "Qualifications & Skills", file: "content/healthcare-quals.html" }
+      { id: "quals", label: "Qualifications & Skills", file: "content/healthcare-quals.html" },
+      { id: "visa",  label: "Visa & Work Authorization", file: "content/healthcare-visa.html" }
     ],
     icon: "M12 21s-6.7-4.35-9.2-8.06C1 10.24 1.9 6.5 5.2 5.6 7.3 5 9.3 6 12 8.7c2.7-2.7 4.7-3.7 6.8-3.1 3.3.9 4.2 4.64 2.4 7.34C18.7 16.65 12 21 12 21z"
   },
@@ -52,7 +53,8 @@ const SECTORS = [
     catColumn: "Employer_Category", catLabel: "Employer Sector", catLabelPlural: "Employer Sectors",
     staticTabs: [
       { id: "about", label: "About & Methods",        file: "content/hospitality-about.html" },
-      { id: "quals", label: "Qualifications & Skills", file: "content/hospitality-quals.html" }
+      { id: "quals", label: "Qualifications & Skills", file: "content/hospitality-quals.html" },
+      { id: "visa",  label: "Visa & Work Authorization", file: "content/hospitality-visa.html" }
     ],
     icon: "M4 3h16v2H4zm2 4h12l-1 13H7L6 7zm4 3v7m4-7v7"
   },
@@ -72,7 +74,8 @@ const SECTORS = [
     catColumn: "Employer_Category", catLabel: "Employer Sector", catLabelPlural: "Employer Sectors",
     staticTabs: [
       { id: "about", label: "About & Methods",        file: "content/logistics-about.html" },
-      { id: "quals", label: "Qualifications & Skills", file: "content/logistics-quals.html" }
+      { id: "quals", label: "Qualifications & Skills", file: "content/logistics-quals.html" },
+      { id: "visa",  label: "Visa & Work Authorization", file: "content/logistics-visa.html" }
     ],
     icon: "M3 7h11v8H3zM14 10h4l3 3v2h-7zM7 19a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4z"
   }

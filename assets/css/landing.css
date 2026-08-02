@@ -5,8 +5,10 @@
 /* Header */
 .site-head { border-bottom: 1px solid var(--line); background: rgba(251,250,247,.85); backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 10; }
 .site-head__row { display: flex; align-items: center; justify-content: space-between; height: 64px; }
-.brand { display: flex; align-items: baseline; gap: 10px; }
+.brand { display: flex; align-items: center; gap: 12px; }
 .brand__mark { font-family: var(--font-display); font-weight: 700; font-size: 20px; letter-spacing: .02em; color: var(--teal-deep); }
+.brand__logo { height: 30px; width: auto; display: block; }
+.brand__logo--foot { height: 34px; }
 .brand__sub { font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
 .site-nav { display: flex; gap: 22px; font-size: 14px; }
 .site-nav a { color: var(--ink-soft); }

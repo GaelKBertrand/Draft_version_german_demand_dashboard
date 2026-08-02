@@ -1724,7 +1724,7 @@ function buildStaticTabs(){
     mount.appendChild(sec);
 
     fetch(t.file).then(function(r){ if(!r.ok) throw new Error(r.status); return r.text(); })
-      .then(function(html){ sec.innerHTML=html; populateAboutSectors(sec); populateQualsExtract(sec); })
+      .then(function(html){ sec.innerHTML=html; populateAboutSectors(sec); populateQualsExtract(sec); populateVisaExtract(sec); })
       .catch(function(){ sec.innerHTML='<div class="alert-box">Could not load <code>'+esc(t.file)+'</code>. If testing locally, serve over http.</div>'; });
   });
 }
@@ -1762,6 +1762,46 @@ function populateQualsExtract(scope){
           '</div></div>';
       });
       host.innerHTML=out || '<div style="padding:14px;color:#7A9C9C;font-size:12px">No classified postings in the dataset.</div>';
+    });
+}
+
+/* Dedicated Visa & Work-Authorization tab: same extractor, visa dimension only,
+   surfaced prominently with a share bar per occupation. */
+function populateVisaExtract(scope){
+  var host=(scope||document).querySelector('#visa-extract');
+  if(!host || !DATA || typeof REQX==='undefined') return;
+  ensureIdx();
+  REQX.run(DATA, ensureIdx, _rowToIdx,
+    function(pctDone){
+      var p=(scope||document).querySelector('#visa-extract-pct');
+      if(p) p.textContent=pctDone+'%';
+    },
+    function(res){
+      var out='<table class="data-tbl"><thead><tr>'+
+        '<th>Occupation (ISCO-4)</th><th style="text-align:right">Postings</th>'+
+        '<th style="width:180px">Visa / work-authorization signal</th>'+
+        '<th>Signals stated by employers (share of the occupation)</th></tr></thead><tbody>';
+      res.top10.forEach(function(occ){
+        var a=res.agg[occ]; if(!a || !a.total) return;
+        var vpct=+(a.anyVisa/a.total*100).toFixed(1);
+        var visa=Object.keys(a.visa).sort(function(x,y){ return a.visa[y]-a.visa[x]; }).slice(0,6)
+          .map(function(t){ return { t:t, n:a.visa[t], p:+(a.visa[t]/a.total*100).toFixed(1) }; });
+        var barW=Math.max(2, Math.min(100, vpct));
+        out+='<tr><td><b>'+esc(occ)+'</b></td>'+
+          '<td class="cnt" style="text-align:right">'+fmt(a.total)+'</td>'+
+          '<td><div style="display:flex;align-items:center;gap:7px">'+
+            '<div style="flex:1;height:8px;border-radius:5px;background:#EAF1F1;overflow:hidden">'+
+              '<div style="height:100%;width:'+barW+'%;background:linear-gradient(90deg,#C98A0B,#D4940A)"></div></div>'+
+            '<span style="font-weight:700;color:#C98A0B;font-size:11px;min-width:38px;text-align:right">'+vpct+'%</span></div></td>'+
+          '<td style="font-size:11px">'+
+            (visa.length? visa.map(function(d){ return esc(d.t)+' <span style="color:#7A9C9C">('+d.p+'%)</span>'; }).join(' \u00b7 ')
+                        : '<span style="color:#7A9C9C">No visa or work-authorization signal detected in this occupation\u2019s postings.</span>')+
+          '</td></tr>';
+      });
+      out+='</tbody></table>';
+      out+='<div style="padding:12px 14px;font-size:11px;color:#7A9C9C;border-top:1px solid #E4EEEE">'+
+        'A low signal share is expected and meaningful: German employers rarely spell out visa sponsorship in job ads even where demand is acute, which is precisely the recruitment-infrastructure gap GATI works to close. Counts reflect postings passing the current header filters.</div>';
+      host.innerHTML=out;
     });
 }
 
