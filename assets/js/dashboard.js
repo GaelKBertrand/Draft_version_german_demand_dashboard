@@ -1724,9 +1724,45 @@ function buildStaticTabs(){
     mount.appendChild(sec);
 
     fetch(t.file).then(function(r){ if(!r.ok) throw new Error(r.status); return r.text(); })
-      .then(function(html){ sec.innerHTML=html; populateAboutSectors(sec); })
+      .then(function(html){ sec.innerHTML=html; populateAboutSectors(sec); populateQualsExtract(sec); })
       .catch(function(){ sec.innerHTML='<div class="alert-box">Could not load <code>'+esc(t.file)+'</code>. If testing locally, serve over http.</div>'; });
   });
+}
+
+/* Run the unified requirements extractor and render visa + job requirement
+   classifications for the top 10 ISCO-4 occupations into the Quals tab. */
+function populateQualsExtract(scope){
+  var host=(scope||document).querySelector('#quals-extract');
+  if(!host || !DATA || typeof REQX==='undefined') return;
+  ensureIdx();
+  REQX.run(DATA, ensureIdx, _rowToIdx,
+    function(pctDone){
+      var p=(scope||document).querySelector('#quals-extract-pct');
+      if(p) p.textContent=pctDone+'%';
+    },
+    function(res){
+      var out='';
+      res.top10.forEach(function(occ){
+        var a=res.agg[occ]; if(!a || !a.total) return;
+        function topTags(o,n){
+          return Object.keys(o).sort(function(x,y){ return o[y]-o[x]; }).slice(0,n)
+            .map(function(t){ return { t:t, n:o[t], p:+(o[t]/a.total*100).toFixed(1) }; });
+        }
+        var visa=topTags(a.visa,5), job=topTags(a.job,8);
+        out+='<div style="padding:12px 14px;border-top:1px solid #E4EEEE">'+
+          '<div style="font-weight:700;color:#0F5B5A;font-size:13px">'+esc(occ)+
+          ' <span style="color:#7A9C9C;font-weight:400">\u00b7 '+fmt(a.total)+' postings \u00b7 '+
+          (+(a.anyVisa/a.total*100).toFixed(1))+'% carry a visa / work-authorisation signal</span></div>';
+        if(visa.length){
+          out+='<div style="margin-top:6px;font-size:11px"><span style="font-weight:700;color:#C98A0B">Visa &amp; legal-status signals:</span> '+
+            visa.map(function(d){ return esc(d.t)+' <span style="color:#7A9C9C">('+d.p+'%)</span>'; }).join(' \u00b7 ')+'</div>';
+        }
+        out+='<div style="margin-top:4px;font-size:11px"><span style="font-weight:700;color:#1A7B7A">Job-specific requirements:</span> '+
+          (job.length? job.map(function(d){ return esc(d.t)+' <span style="color:#7A9C9C">('+d.p+'%)</span>'; }).join(' \u00b7 ') : '\u2014')+
+          '</div></div>';
+      });
+      host.innerHTML=out || '<div style="padding:14px;color:#7A9C9C;font-size:12px">No classified postings in the dataset.</div>';
+    });
 }
 
 /* Fill the About & Methods sector glossary straight from the loaded dataset:

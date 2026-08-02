@@ -1,92 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GATI · Germany Skills-Mobility Dashboards</title>
-  <meta name="description" content="Sector dashboards on Germany's labour-market demand, built for GATI's global skills-mobility work." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/base.css?v=20260722-3" />
-  <link rel="stylesheet" href="assets/css/landing.css?v=20260722-3" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GATI · Global Skills-Mobility Dashboards</title>
+  <meta name="description" content="GATI's labour-market demand dashboards across skills-mobility corridors. Choose a destination country to explore sector-level demand.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{ --teal:#0F5B5A; --teal2:#1A7B7A; --gold:#C98A0B; --gold2:#D4940A; --ink:#22312F; --soft:#7A9C9C; --bg:#F5F8F8; }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+
+    /* ---------- SPLASH ---------- */
+    #splash{position:fixed;inset:0;z-index:100;background:linear-gradient(150deg,#0B3B3A 0%,#0F5B5A 55%,#14504F 100%);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;
+      transition:opacity .6s ease, visibility .6s}
+    #splash.gone{opacity:0;visibility:hidden;pointer-events:none}
+    .g-letters{display:flex;gap:14px}
+    .g-letters span{font-size:84px;font-weight:800;color:#fff;letter-spacing:2px;line-height:1;
+      opacity:0;transform:translateY(26px) scale(.92);animation:rise .7s cubic-bezier(.2,.8,.25,1) forwards}
+    .g-letters span:nth-child(1){animation-delay:.10s}
+    .g-letters span:nth-child(2){animation-delay:.24s;color:#F2C14E}
+    .g-letters span:nth-child(3){animation-delay:.38s}
+    .g-letters span:nth-child(4){animation-delay:.52s;color:#F2C14E}
+    @keyframes rise{to{opacity:1;transform:none}}
+    .g-bar{width:240px;height:3px;border-radius:3px;background:rgba(255,255,255,.18);overflow:hidden}
+    .g-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#F2C14E,#D4940A);
+      animation:fill 2.4s .3s ease forwards}
+    @keyframes fill{to{width:100%}}
+    #g-quote{max-width:560px;text-align:center;color:#CFE6E5;font-size:15px;font-weight:400;line-height:1.7;
+      min-height:52px;padding:0 24px;opacity:0;animation:fadeQ .8s .5s forwards}
+    #g-quote b{color:#F2C14E;font-weight:600}
+    @keyframes fadeQ{to{opacity:1}}
+    .g-sub{color:#9FC4C3;font-size:11px;letter-spacing:3px;text-transform:uppercase;opacity:0;animation:fadeQ .8s .9s forwards}
+
+    /* ---------- COUNTRY SELECTION ---------- */
+    #stage{opacity:0;transition:opacity .7s ease .1s;padding:0 22px}
+    #stage.show{opacity:1}
+    header.hd{max-width:1060px;margin:0 auto;padding:34px 0 8px;display:flex;align-items:center;gap:12px}
+    .logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(140deg,var(--teal),var(--teal2));
+      color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:15px;letter-spacing:.5px}
+    .hd h2{font-size:16px;font-weight:700;color:var(--teal)}
+    .hd small{display:block;font-size:11px;color:var(--soft);font-weight:400}
+    .hero{max-width:1060px;margin:0 auto;padding:34px 0 10px}
+    .hero .eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold)}
+    .hero h1{font-size:clamp(26px,4vw,40px);font-weight:800;color:var(--teal);margin:10px 0 8px;line-height:1.15}
+    .hero p{color:#4A6260;font-size:14.5px;max-width:640px;line-height:1.7}
+    .countries{max-width:1060px;margin:30px auto 60px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+    .cty{background:#fff;border:1px solid #E2ECEC;border-radius:16px;padding:26px 24px;text-decoration:none;color:inherit;
+      display:block;position:relative;transition:transform .18s ease, box-shadow .18s ease}
+    .cty.on:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(15,91,90,.14);border-color:var(--teal2)}
+    .cty .flag{font-size:34px}
+    .cty h3{font-size:19px;font-weight:700;color:var(--teal);margin:12px 0 5px}
+    .cty p{font-size:12.5px;color:var(--soft);line-height:1.6}
+    .cty .go{display:inline-block;margin-top:16px;font-size:12.5px;font-weight:700;color:var(--gold)}
+    .cty.off{opacity:.62;cursor:default;background:#FBFDFD}
+    .cty.off .soon{position:absolute;top:16px;right:16px;font-size:9.5px;font-weight:700;letter-spacing:1.5px;
+      text-transform:uppercase;background:#EFF5F5;color:var(--soft);padding:4px 9px;border-radius:20px}
+    footer.ft{max-width:1060px;margin:0 auto;padding:0 0 34px;color:#9AB4B3;font-size:11px}
+  </style>
 </head>
 <body>
-  <header class="site-head">
-    <div class="wrap site-head__row">
-      <a class="brand" href="index.html">
-        <span class="brand__mark" aria-hidden="true">GATI</span>
-        <span class="brand__sub">Skills-Mobility Data</span>
-      </a>
-      <nav class="site-nav">
-        <a href="https://gatifoundation.org/" target="_blank" rel="noopener">About GATI</a>
-        <a href="https://gatifoundation.org/resource-center" target="_blank" rel="noopener">Resource Center</a>
-      </nav>
-    </div>
+
+<!-- ====== SPLASH LOADER ====== -->
+<div id="splash">
+  <div class="g-letters"><span>G</span><span>A</span><span>T</span><span>I</span></div>
+  <div class="g-bar"><i></i></div>
+  <div id="g-quote"></div>
+  <div class="g-sub">Global Access to Talent from India</div>
+</div>
+
+<!-- ====== COUNTRY SELECTION ====== -->
+<div id="stage">
+  <header class="hd">
+    <div class="logo">G</div>
+    <div><h2>GATI<small>Skills-Mobility Intelligence</small></h2></div>
   </header>
 
-  <main>
-    <!-- Hero -->
-    <section class="hero">
-      <div class="wrap hero__inner">
-        <p class="eyebrow">Global Skills Mobility · Germany corridor</p>
-        <h1 class="hero__title">Where Germany is hiring, sector by sector.</h1>
-        <p class="hero__lede">
-          Standardised StepStone job-posting data, classified to ISCO-08 and mapped to
-          German states. Pick a sector to explore demand by occupation, employer type,
-          region and week.
-        </p>
-        <div class="hero__meta">
-          <span class="chip">StepStone.de</span>
-          <span class="chip">ISCO-08 classified</span>
-          <span class="chip chip--gold">Research · Design · Catalyse</span>
-        </div>
-      </div>
-    </section>
+  <section class="hero">
+    <p class="eyebrow">Global Skills Mobility · Demand Intelligence</p>
+    <h1>Where the world is hiring, corridor by corridor.</h1>
+    <p>Sector-level labour-market demand dashboards for GATI's skills-mobility corridors — built from live job-posting
+       data, classified to international standards (ISCO-08, ISIC Rev.4). Choose a destination country to explore its
+       sector dashboards.</p>
+  </section>
 
-    <!-- Sector cards -->
-    <section class="wrap sectors">
-      <div class="sectors__head">
-        <h2>Choose a sector</h2>
-        <p class="muted">The landing counts come from tiny per-sector meta.json files; each dashboard reads the full CSV only when you open it.</p>
-      </div>
-      <div id="sector-grid" class="sector-grid" role="list">
-        <!-- cards injected by landing.js -->
-      </div>
-    </section>
+  <section class="countries" id="country-grid"><!-- filled by script --></section>
 
-    <!-- Data note -->
-    <section class="wrap datanote">
-      <div class="card datanote__card">
-        <h3>How the data flows</h3>
-        <p class="muted">
-          Each sector card opens the same dashboard shell, pointed at that sector via
-          <code class="mono">dashboard.html?sector=&lt;id&gt;</code>. The dashboard fetches the sector's
-          clean CSV, builds the data model in the browser, and renders the charts — no server needed.
-          The CSV location is set once in <code class="mono">assets/js/sectors.js</code>.
-        </p>
-      </div>
-    </section>
-  </main>
+  <footer class="ft">GATI Foundation · The Convergence Foundation · Data classified to ISCO-08 (ILO) and ISIC Rev.4 (UN)</footer>
+</div>
 
-  <footer class="site-foot">
-    <div class="wrap site-foot__row">
-      <div>
-        <p class="brand__mark" style="color:#fff">GATI</p>
-        <p class="muted" style="color:#B9CFCC;margin:.3rem 0 0;max-width:34ch">
-          Global Access to Talent from India — building the global skills-mobility ecosystem.
-        </p>
-      </div>
-      <div class="site-foot__links">
-        <a href="https://gatifoundation.org/">Website</a>
-        <a href="https://www.linkedin.com/company/gati-foundation/">LinkedIn</a>
-        <a href="mailto:info@gatifoundation.org">Contact</a>
-      </div>
-    </div>
-  </footer>
+<script src="assets/js/sectors.js?v=20260724-1"></script>
+<script>
+  /* rotating quotes during the loader */
+  var QUOTES = [
+    'By 2030, Germany alone will need an estimated <b>7 million</b> additional workers to offset demographic decline.',
+    'India will add roughly <b>a quarter of the world\'s new working-age population</b> over the next decade.',
+    '<b>Global skills mobility</b> is the bridge between ageing economies and young workforces — built one corridor at a time.',
+    'Every classified posting in these dashboards maps demand to <b>ISCO-08 occupations</b> and <b>ISIC Rev.4 sectors</b>.',
+    'Well-governed migration corridors raise wages for workers and fill critical gaps for employers — <b>a rare win-win</b>.'
+  ];
+  (function(){
+    var qEl = document.getElementById('g-quote');
+    var qi = Math.floor(Math.random()*QUOTES.length);
+    function setQ(){ qEl.innerHTML = QUOTES[qi % QUOTES.length]; qi++; }
+    setQ();
+    var rot = setInterval(setQ, 1400);
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <script src="assets/js/sectors.js?v=20260722-3"></script>
-  <script src="assets/js/landing.js?v=20260722-3"></script>
+    /* build the country grid from the shared registry in sectors.js */
+    var grid = document.getElementById('country-grid');
+    (window.COUNTRIES || []).forEach(function(c){
+      var el = document.createElement(c.active ? 'a' : 'div');
+      el.className = 'cty ' + (c.active ? 'on' : 'off');
+      if (c.active) el.href = c.id + '.html';
+      el.innerHTML = '<div class="flag">' + c.flag + '</div>' +
+        '<h3>' + c.label + '</h3><p>' + c.tagline + '</p>' +
+        (c.active ? '<span class="go">Open dashboards \u2192</span>' : '<span class="soon">Coming soon</span>');
+      grid.appendChild(el);
+    });
+
+    /* reveal after the load window (2.8s) */
+    setTimeout(function(){
+      clearInterval(rot);
+      document.getElementById('splash').classList.add('gone');
+      document.getElementById('stage').classList.add('show');
+    }, 2800);
+  })();
+</script>
 </body>
 </html>
