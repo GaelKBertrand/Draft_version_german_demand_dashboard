@@ -133,10 +133,52 @@
         return out.replace(/\r$/, "").replace(/^"|"$/g, "").trim();
       }
 
-      fetch(csvUrlFor(sec))
-        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
-        .then(function (text) { var r = countCsv(text); paint(r.n, r.dMin, r.dMax); })
-        .catch(function () { paint(0); });
+      /* ---- fast path: cache the count against the file's real identity -----
+         A tiny HEAD request returns Content-Length + Last-Modified (a few
+         bytes, instant). We key a localStorage cache on that signature, so:
+           • first ever view: download once, count, store the result;
+           • every later view: the signature matches → paint instantly, no
+             megabyte download at all;
+           • the moment the CSV changes, its size/date changes, the signature
+             no longer matches, and we recount automatically.
+         This keeps the number 100% live (never a hand-maintained file) while
+         costing a full download only when the data has actually changed. */
+      var CACHE_KEY = "gati:cardcount:" + GATI_COUNTRY + ":" + sec.id;
+
+      function readCache(){
+        try { return JSON.parse(localStorage.getItem(CACHE_KEY) || "null"); }
+        catch (e) { return null; }
+      }
+      function writeCache(sig, r){
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ sig: sig, n: r.n, dMin: r.dMin, dMax: r.dMax })); }
+        catch (e) { /* storage full or blocked — counting still works, just uncached */ }
+      }
+      function downloadAndCount(sig){
+        fetch(csvUrlFor(sec))
+          .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+          .then(function (text) {
+            var r = countCsv(text);
+            if (sig) writeCache(sig, r);
+            paint(r.n, r.dMin, r.dMax);
+          })
+          .catch(function () { paint(0); });
+      }
+
+      /* HEAD first to get a cheap signature; if the server doesn't allow HEAD
+         or omits the headers, we simply fall back to a live full count. */
+      fetch(csvUrlFor(sec), { method: "HEAD" })
+        .then(function (r) {
+          if (!r.ok) throw new Error(r.status);
+          var sig = (r.headers.get("Last-Modified") || "") + "|" + (r.headers.get("Content-Length") || "");
+          if (sig === "|") { downloadAndCount(null); return; }   /* no usable headers */
+          var cached = readCache();
+          if (cached && cached.sig === sig && cached.n) {
+            paint(cached.n, cached.dMin, cached.dMax);            /* instant */
+          } else {
+            downloadAndCount(sig);                                /* first time / changed */
+          }
+        })
+        .catch(function () { downloadAndCount(null); });          /* HEAD unsupported → live count */
     })(s);
   });
 })();
