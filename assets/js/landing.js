@@ -153,27 +153,49 @@
         try { localStorage.setItem(CACHE_KEY, JSON.stringify({ sig: sig, n: r.n, dMin: r.dMin, dMax: r.dMax })); }
         catch (e) { /* storage full or blocked — counting still works, just uncached */ }
       }
+      /* Everything below is fire-and-forget and time-boxed: a stalled network
+         request can NEVER hang the page or block the card's "Open dashboard"
+         link. If a count hasn't arrived within 5s we just show a neutral state
+         and move on. The <a> link works immediately regardless. */
+      var settled = false;
+      function safePaint(n, dMin, dMax){ if(settled) return; settled = true; paint(n, dMin, dMax); }
+      function paintUnknown(){
+        if(settled) return; settled = true;
+        var el = document.getElementById("stat-" + sec.id);
+        if(!el) return;
+        el.classList.remove("is-loading");
+        el.innerHTML = '<span class="stat-unit" style="color:#7A9C9C">Open to view details</span>';
+      }
+      var killTimer = setTimeout(paintUnknown, 5000);
+
+      function withTimeout(promise){
+        return Promise.race([
+          promise,
+          new Promise(function(_, rej){ setTimeout(function(){ rej(new Error("timeout")); }, 4500); })
+        ]);
+      }
+
       function downloadAndCount(sig){
-        fetch(csvUrlFor(sec))
+        withTimeout(fetch(csvUrlFor(sec)))
           .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
           .then(function (text) {
             var r = countCsv(text);
             if (sig) writeCache(sig, r);
-            paint(r.n, r.dMin, r.dMax);
+            clearTimeout(killTimer); safePaint(r.n, r.dMin, r.dMax);
           })
-          .catch(function () { paint(0); });
+          .catch(function () { clearTimeout(killTimer); paintUnknown(); });
       }
 
       /* HEAD first to get a cheap signature; if the server doesn't allow HEAD
          or omits the headers, we simply fall back to a live full count. */
-      fetch(csvUrlFor(sec), { method: "HEAD" })
+      withTimeout(fetch(csvUrlFor(sec), { method: "HEAD" }))
         .then(function (r) {
           if (!r.ok) throw new Error(r.status);
           var sig = (r.headers.get("Last-Modified") || "") + "|" + (r.headers.get("Content-Length") || "");
           if (sig === "|") { downloadAndCount(null); return; }   /* no usable headers */
           var cached = readCache();
           if (cached && cached.sig === sig && cached.n) {
-            paint(cached.n, cached.dMin, cached.dMax);            /* instant */
+            clearTimeout(killTimer); safePaint(cached.n, cached.dMin, cached.dMax);   /* instant */
           } else {
             downloadAndCount(sig);                                /* first time / changed */
           }
