@@ -312,7 +312,12 @@ function loadSectorData(sectorId) {
   var sector = (typeof getSector === "function") ? getSector(sectorId) : { csv: "data/" + sectorId + ".csv" };
   var url = (typeof csvUrlFor === "function") ? csvUrlFor(sector) : sector.csv;
 
-  return fetch(url, { cache: "no-store" }).then(function (res) {
+  /* Use the browser's normal HTTP cache (validated by the server's
+     ETag/Last-Modified) instead of "no-store". The landing card has usually
+     just fetched this same file, so this reuses it instead of pulling the
+     full multi-megabyte CSV again — which is what made opening a dashboard
+     slow. Fresh data still loads whenever the file actually changes. */
+  return fetch(url).then(function (res) {
     if (!res.ok) {
       throw LoadError("http",
         "HTTP " + res.status + " fetching " + url,

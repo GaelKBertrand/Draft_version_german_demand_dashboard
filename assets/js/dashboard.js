@@ -236,6 +236,20 @@ function showTab(id, btn){
   if (id==='classify')   renderClassifications(rows);
   if (id==='context')    renderMarketContext(rows);
   if (id==='tiers')      renderTiers();
+
+  /* Run the heavy requirements extractor lazily — only when the user opens
+     a tab that needs it, and only once. This keeps the initial dashboard
+     load fast (previously it ran twice over the whole dataset at load). */
+  if (panel){
+    if (panel.getAttribute('data-needs-quals')==='1'){
+      panel.removeAttribute('data-needs-quals');
+      setTimeout(function(){ populateQualsExtract(panel); }, 30);
+    }
+    if (panel.getAttribute('data-needs-visa')==='1'){
+      panel.removeAttribute('data-needs-visa');
+      setTimeout(function(){ populateVisaExtract(panel); }, 30);
+    }
+  }
 }
 
 /* ======= RENDER ALL ======================================================= */
@@ -1710,7 +1724,15 @@ function buildStaticTabs(){
     mount.appendChild(sec);
 
     fetch(t.file).then(function(r){ if(!r.ok) throw new Error(r.status); return r.text(); })
-      .then(function(html){ sec.innerHTML=html; populateAboutSectors(sec); populateQualsExtract(sec); populateVisaExtract(sec); })
+      .then(function(html){
+        sec.innerHTML=html;
+        /* Populate sector glossary immediately (cheap), but DEFER the heavy
+           requirements extractor until the user actually opens the tab —
+           running it at load froze the whole dashboard. Mark what's pending. */
+        populateAboutSectors(sec);
+        if (sec.querySelector('#quals-extract')) sec.setAttribute('data-needs-quals','1');
+        if (sec.querySelector('#visa-extract'))  sec.setAttribute('data-needs-visa','1');
+      })
       .catch(function(){ sec.innerHTML='<div class="alert-box">Could not load <code>'+esc(t.file)+'</code>. If testing locally, serve over http.</div>'; });
   });
 }
