@@ -13,7 +13,7 @@
    ============================================================================ */
 
 /* ======= APP STATE ======================================================== */
-var APP = { filterState:'ALL', filterIsic:'ALL', filterGenuine:true, filterClearCat:true,
+var APP = { filterState:'ALL', filterIsic:'ALL', filterGenuine:true, filterClearCat:true, filterClearOcc:true,
             activeTab:'overview', activeRole:null,
             leafletMap:null, mapInit:false,
             sector:null, region:null };
@@ -183,6 +183,7 @@ function populateFilters(){
     DATA.lookup.isic.map(function(s){ return '<option value="'+esc(s)+'">'+esc(s)+'</option>'; }).join('');
   document.getElementById('flt-genuine').checked = APP.filterGenuine;
   var fc=document.getElementById('flt-clearcat'); if(fc) fc.checked = !!APP.filterClearCat;
+  var fo=document.getElementById('flt-clearocc'); if(fo) fo.checked = !!APP.filterClearOcc;
 }
 
 function fillDataBanner(){
@@ -203,11 +204,14 @@ function fillDataBanner(){
 function getRows(){
   var si = APP.filterState!=='ALL' ? DATA.lookup.states.indexOf(APP.filterState) : -999;
   var ii = APP.filterIsic!=='ALL'  ? DATA.lookup.isic.indexOf(APP.filterIsic)   : -999;
+  /* index of the "Unclassified" ISCO-4 bucket, if present (-1 if none) */
+  var unclIx = DATA.lookup.isco4 ? DATA.lookup.isco4.indexOf('Unclassified') : -1;
   return DATA.rows.filter(function(r){
     if (si!==-999 && r[0]!==si) return false;
     if (ii!==-999 && r[1]!==ii) return false;
     if (APP.filterGenuine && r[6]===1) return false;
     if (APP.filterClearCat && r[8]===0) return false;
+    if (APP.filterClearOcc && unclIx!==-1 && r[4]===unclIx) return false;
     return true;
   });
 }
@@ -217,6 +221,8 @@ function applyFilters(){
   APP.filterGenuine  = document.getElementById('flt-genuine').checked;
   var _fc = document.getElementById('flt-clearcat');
   APP.filterClearCat = _fc ? _fc.checked : true;
+  var _fo = document.getElementById('flt-clearocc');
+  APP.filterClearOcc = _fo ? _fo.checked : true;
   EXP_PAGE = 0;
   renderAll();
 }
@@ -331,11 +337,19 @@ function hBar(id, items, opts){
   var vals = s.map(function(d){ return asPct ? +(d.count/Math.max(total,1)*100).toFixed(1) : d.count; });
   var maxV = Math.max.apply(null, vals) || 1;
 
-  /* Size the container to the data: every wrapped label line gets vertical room,
-     so a top-20 chart with two-line names can never overlap. */
+  /* Size the container to the data. Two competing needs:
+     (1) many items with wrapped labels need enough height to not overlap;
+     (2) FEW items must not produce giant slab-like bars when a small region
+         is selected. We give each row a target band and cap total height so
+         bar thickness stays in a sensible range regardless of item count. */
   var wrapped = s.map(function(d){ return codeLabel(d.code, d.label, opts.wrap || 26); });
   var lines = wrapped.reduce(function(a,w){ return a + w.split('<br>').length; }, 0);
-  var h = Math.max(opts.minH || 200, lines * 19 + s.length * 14 + 60);
+  var BAND = 46;                                   /* target vertical band per bar */
+  var contentH = lines * 19 + s.length * 14 + 60;  /* room for wrapped labels */
+  var bandH    = s.length * BAND + 50;             /* room that keeps bars slim */
+  /* use whichever is larger so labels never overlap, but cap so a 2-bar chart
+     doesn't stretch a bar to fill 300px of height */
+  var h = Math.max(opts.minH || 160, Math.min(Math.max(contentH, bandH), 620));
   el.style.height = h + 'px';
 
   drawChart(id, [{
@@ -357,7 +371,7 @@ function hBar(id, items, opts){
   }], {
     xaxis: axV({ showticklabels:false, range:[0, maxV * 1.18] }),
     yaxis: axC({ tickfont:{ size: opts.tick || 10, color:PAL.mid } }),
-    bargap:0.28,
+    bargap: s.length <= 3 ? 0.62 : (s.length <= 5 ? 0.5 : (s.length <= 8 ? 0.38 : 0.28)),
     margin:{ l:8, r: opts.rightPad || 56, t:10, b:8 }
   }, {
     title: opts.title || id,
@@ -429,7 +443,9 @@ function renderCrossTab(rows){
   var cats=Object.keys(catCount).sort(function(a,b){ return catCount[b]-catCount[a]; }).slice(0,8);
 
   var el=document.getElementById('chart-cross');
-  if(el) el.style.height=Math.max(320, grps.length*62 + 190)+'px';
+  /* Keep cells a sensible height whether there are 2 rows or 6: floor stops a
+     tiny selection from collapsing, ceiling stops it stretching absurdly. */
+  if(el) el.style.height = Math.min(560, Math.max(300, grps.length * 64 + 190)) + 'px';
   var order=grps.slice().reverse();
   var z=order.map(function(g){ return cats.map(function(c){
         var n=matrix[g.code][c]||0;
@@ -1347,37 +1363,9 @@ function renderTiers(){
   if (TIER_VIEW==='region')   tierRegions(rows);
   if (TIER_VIEW==='employer') tierEmployers(rows);
   if (TIER_VIEW==='sector')   tierSectors(rows);
-  if (TIER_VIEW==='isic2')    tierIsic2(rows);
 }
 
 /* ---- 6. ISIC-2 sectors with their codes --------------------------------- */
-function tierIsic2(rows){
-  var total=rows.length, c={}, occ={}, st={};
-  rows.forEach(function(r){
-    if (r[1]<0) return;
-    var n=DATA.lookup.isic[r[1]];
-    c[n]=(c[n]||0)+1;
-    if (r[4]>=0){ var o=DATA.lookup.isco4[r[4]]; (occ[n]=occ[n]||{})[o]=((occ[n]||{})[o]||0)+1; }
-    if (r[0]>=0){ var s2=DATA.lookup.states[r[0]]; (st[n]=st[n]||{})[s2]=((st[n]||{})[s2]||0)+1; }
-  });
-  function topK2(o){ var b='\u2014',n=-1; for(var k in o){ if(o[k]>n){n=o[k];b=k;} } return b; }
-  var ranked=Object.keys(c).map(function(n){
-    return { name:n, code:(DATA.isicCodeByName&&DATA.isicCodeByName[n])||'', count:c[n] };
-  }).sort(function(a,b){ return b.count-a.count; });
-
-  hBar('tier-isic2-bar', ranked.slice(0,TIER_N).map(function(d){ return { label:d.name, count:d.count }; }),
-       { total:total, wrap:42, ofWhat:'postings',
-         title:'Top '+TIER_N+' employer sectors (ISIC-2)' });
-
-  var html='<table class="data-tbl"><thead><tr><th>ISIC-2</th><th>Employer Sector</th><th>Postings</th><th>Share</th><th>Leading Occupation (ISCO-4)</th><th>Leading State</th></tr></thead><tbody>';
-  ranked.forEach(function(d){
-    html+='<tr><td>'+(d.code?'<span class="badge badge-g">'+esc(String(d.code))+'</span>':'\u2014')+'</td>'+
-      '<td><b>'+esc(d.name)+'</b></td><td class="cnt">'+fmt(d.count)+'</td>'+
-      '<td class="num">'+pct(d.count,total)+'%</td>'+
-      '<td>'+esc(topK2(occ[d.name]||{}))+'</td><td>'+esc(topK2(st[d.name]||{}))+'</td></tr>';
-  });
-  document.getElementById('tier-isic2-table').innerHTML=html+'</tbody></table>';
-}
 
 /* ---- 1. Occupations (ISCO-4) --------------------------------------------- */
 function tierOccupations(rows){
@@ -1406,7 +1394,7 @@ function tierOccupations(rows){
   var elOS = document.getElementById('tier-occ-sector');
   if (elOS){
     var occNames = top.map(function(d){ return d.label; }).reverse();
-    elOS.style.height = Math.max(320, occNames.length * 52 + 190) + 'px';
+    elOS.style.height = Math.min(560, Math.max(300, occNames.length * 54 + 190)) + 'px';
     var zOS = occNames.map(function(o){
       var sub = byOcc[o]||[];
       return topSecs.map(function(sec){
@@ -1535,6 +1523,8 @@ function tierRegions(rows){
     });
     drawChart('tier-region-mix', traces, {
       barmode:'group', showlegend:true,
+      bargap: topStates.length <= 2 ? 0.5 : 0.2,
+      bargroupgap: 0.08,
       xaxis:axC({tickangle:0}),
       yaxis:axV({title:{text:'Postings',font:{size:10,color:PAL.soft}}}),
       legend:{orientation:'h',y:-0.28,font:{size:9.5,color:PAL.mid}},
@@ -1653,6 +1643,9 @@ function tierSectors(rows){
         return [s2, st, n, sub.length ? +(n/sub.length*100).toFixed(1) : 0];
       });
     });
+    /* size the heatmap to its row count so cells stay legible for a small
+       region (few sectors) without stretching into huge bands */
+    el.style.height = Math.min(560, Math.max(280, secs.length * 40 + 150)) + 'px';
     drawChart('tier-sector-geo', [{
       type:'heatmap', z:z, x:states, y:secs.map(function(s){ return wrapLabel(s, 22); }),
       customdata:custG,

@@ -10,7 +10,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<link rel="stylesheet" href="assets/css/dashboard.css?v=20260724-9">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=20260725-2">
 </head>
 <body>
 
@@ -37,6 +37,7 @@
     </select>
     <label><input type="checkbox" id="flt-genuine" checked onchange="applyFilters()"> Remove Duplicate Job IDs</label>
     <label><input type="checkbox" id="flt-clearcat" checked onchange="applyFilters()"> Hide Unclear Employer Categories</label>
+    <label><input type="checkbox" id="flt-clearocc" checked onchange="applyFilters()"> Hide Unclassified Occupations</label>
   </div>
   <span id="filter-count"></span>
 </header>
@@ -68,6 +69,7 @@
   <div class="filter-box" id="genuine-explain">
     <b>Duplicate filter (enabled by default):</b> Every job posting is counted as its own post. This filter only removes rows that carry the <i>exact same Job ID</i> more than once — a scraping artifact, not a real second posting. In the current datasets every Job ID is unique, so no postings are removed and the filter has no effect on the numbers.
     <br><b>Unclear-category filter (on by default):</b> Hides postings whose employer category could not be confidently determined — rows where the classifier's <i>Employer_Category_Confidence_Level</i> is Low, or the category is empty or marked unclear. Turn it on for a stricter view of employer demand.
+    <br><b>Unclassified-occupation filter (on by default):</b> Hides postings that carry no ISCO-08 occupation — rows whose <i>ISCO_4_name</i> is "Unclassified". These are typically non-clinical or off-sector jobs the occupation classifier declined to code. Turn it off to inspect them.
   </div>
 
   <div class="kpi-row">
@@ -160,8 +162,7 @@
     <button class="sub-btn" onclick="showTierView('title',this)">Advertised Job Titles</button>
     <button class="sub-btn" onclick="showTierView('region',this)">Regions</button>
     <button class="sub-btn" onclick="showTierView('employer',this)">Employers</button>
-    <button class="sub-btn" onclick="showTierView('sector',this)">Employer Sectors</button>
-    <button class="sub-btn" onclick="showTierView('isic2',this)">ISIC-2 Sectors</button>
+    <button class="sub-btn" onclick="showTierView('sector',this)">Employer Sectors (ISIC-2)</button>
   </div>
 
   <!-- OCCUPATIONS -->
@@ -249,19 +250,6 @@
     </div>
   </div>
 
-  <!-- ISIC-2 SECTORS -->
-  <div id="tv-isic2" class="sub-panel">
-    <div class="card card-t" style="margin-bottom:14px">
-      <div class="card-head">Top Employer Sectors · ISIC-2 Level</div>
-      <div class="card-sub">Employer sectors as named in the dataset's Employer_Category column, ranked by posting volume. The table below carries the official 2-digit ISIC Rev.4 code for every sector.</div>
-      <div class="card-body"><div id="tier-isic2-bar"></div></div>
-    </div>
-    <div class="card card-b">
-      <div class="card-head">Full ISIC-2 Sector Listing</div>
-      <div class="card-sub">Every employer sector in the current selection with its ISIC-2 code, posting count, share, and the occupation and state that lead within it.</div>
-      <div class="tbl-wrap" id="tier-isic2-table"></div>
-    </div>
-  </div>
 </section>
 
 <!-- ====== ROLE ANALYSIS ====== -->
@@ -402,15 +390,15 @@
 <div id="static-tabs"><!-- About/Methods, Qualifications etc. injected from /content --></div>
 
 <footer id="footer">
-  GATI Foundation · <span id="foot-sector">Sector</span> Labour Market Intelligence · Data: StepStone Germany · Classification: ISCO-08 (ILO), employer sector (ISIC Rev.4) · Build 20260724-9
+  GATI Foundation · <span id="foot-sector">Sector</span> Labour Market Intelligence · Data: StepStone Germany · Classification: ISCO-08 (ILO), employer sector (ISIC Rev.4) · Build 20260725-2
 </footer>
 
-<script src="assets/js/sectors.js?v=20260724-9"></script>
-<script src="assets/js/data-loader.js?v=20260724-9"></script>
-<script src="assets/js/requirements-extractor.js?v=20260724-9"></script>
-<script src="assets/js/role-meta.js?v=20260724-9"></script>
-<script src="assets/js/chart-kit.js?v=20260724-9"></script>
-<script src="assets/js/dashboard.js?v=20260724-9"></script>
+<script src="assets/js/sectors.js?v=20260725-2"></script>
+<script src="assets/js/data-loader.js?v=20260725-2"></script>
+<script src="assets/js/requirements-extractor.js?v=20260725-2"></script>
+<script src="assets/js/role-meta.js?v=20260725-2"></script>
+<script src="assets/js/chart-kit.js?v=20260725-2"></script>
+<script src="assets/js/dashboard.js?v=20260725-2"></script>
 
 <!-- Back-to-top button -->
 <style>
