@@ -12,7 +12,18 @@
 
 (function () {
   var grid = document.getElementById("sector-grid");
-  if (!grid || typeof SECTORS === "undefined") return;
+  var SECTORS = (typeof window !== "undefined" && window.LANDING_SECTORS) ? window.LANDING_SECTORS
+               : (typeof window !== "undefined" && window.SECTORS) ? window.SECTORS : null;
+  if (!grid || !SECTORS) return;
+  /* forward the active ?country= to each dashboard link so CoreSignal countries
+     load their own data folder; on the Germany page there is no country param,
+     so links stay exactly as before and default to germany. */
+  function _countrySuffix(){
+    try {
+      var c = new URLSearchParams(location.search).get("country");
+      return c ? ("&country=" + encodeURIComponent(c)) : "";
+    } catch(e){ return ""; }
+  }
 
   var fmt = function (n) { return Number(n).toLocaleString("en-US"); };
 
@@ -36,7 +47,7 @@
       '<div class="sector-card__stat is-loading" id="stat-' + s.id + '">' +
         '<span class="skeleton"></span></div>' +
       '<span class="sector-card__cta">Open dashboard <span class="arw" aria-hidden="true">&rarr;</span></span>' +
-      '<a class="sector-card__link" href="dashboard.html?sector=' + encodeURIComponent(s.id) + '">Open the ' + s.label + ' dashboard</a>';
+      '<a class="sector-card__link" href="dashboard.html?sector=' + encodeURIComponent(s.id) + _countrySuffix() + '">Open the ' + s.label + ' dashboard</a>';
 
     grid.appendChild(card);
 

@@ -131,3 +131,71 @@ function getSector(id) { return SECTORS.find(function (s) { return s.id === id; 
 SECTORS.forEach(function (s) {
   if (s.csv && s.csv.indexOf("/") === -1) s.csv = "data/" + GATI_COUNTRY + "/" + s.csv;
 });
+if (typeof window !== "undefined"){ window.SECTORS = SECTORS; window.getSector = getSector; window.csvUrlFor = csvUrlFor; }
+
+/* ============================================================================
+   CORESIGNAL LAYER  (additive — nothing above is changed)
+   ----------------------------------------------------------------------------
+   A second data source alongside StepStone/Germany. Countries and the sectors
+   available per country are declared here. Each sector's CSV lives at
+   data/<country-id>/<sector>.csv — the SAME folder convention as Germany, so
+   you only ever drop CSVs into the right folder. Landing counts self-populate
+   from whatever CSV is present (and show an "add data" note until then).
+
+   To add a country: add an entry to CORESIGNAL_COUNTRIES with its sector ids.
+   To add a sector to a country: add its id to that country's `sectors` array.
+   The sector definitions themselves (icon, scope, tagline, catColumn, tabs)
+   are REUSED from the SECTORS list above, so classification/columns are identical.
+   ============================================================================ */
+const CORESIGNAL_COUNTRIES = [
+  { id: "saudi-arabia",        label: "Saudi Arabia",        flag: "🇸🇦",
+    tagline: "Gulf corridor · construction, hospitality, logistics",
+    sectors: ["construction", "hospitality", "logistics"] },
+  { id: "uae",                 label: "United Arab Emirates", flag: "🇦🇪",
+    tagline: "Gulf corridor · construction, hospitality, logistics",
+    sectors: ["construction", "hospitality", "logistics"] },
+  { id: "qatar",               label: "Qatar",               flag: "🇶🇦",
+    tagline: "Gulf corridor · construction, hospitality",
+    sectors: ["construction", "hospitality"] },
+  { id: "kuwait",              label: "Kuwait",              flag: "🇰🇼",
+    tagline: "Gulf corridor · construction",
+    sectors: ["construction"] },
+  { id: "australia",           label: "Australia",           flag: "🇦🇺",
+    tagline: "Expanded corridor · healthcare, hospitality",
+    sectors: ["healthcare", "hospitality"] },
+  { id: "canada",              label: "Canada",              flag: "🇨🇦",
+    tagline: "Expanded corridor · logistics, healthcare",
+    sectors: ["logistics", "healthcare"] },
+  { id: "coresignal-germany",  label: "Germany (CoreSignal)", flag: "🇩🇪",
+    tagline: "Structural corridor · healthcare",
+    sectors: ["healthcare"] }
+];
+
+/* Sectors available for the active CoreSignal country (used by the CoreSignal
+   sector landing). Falls back to all SECTORS if the country isn't listed. */
+function coresignalCountry(id){
+  return (CORESIGNAL_COUNTRIES || []).find(function(c){ return c.id === id; }) || null;
+}
+function sectorsForCountry(id){
+  var c = coresignalCountry(id);
+  if (!c) return SECTORS.slice();
+  return c.sectors.map(getSector).filter(Boolean);
+}
+if (typeof window !== "undefined"){
+  window.CORESIGNAL_COUNTRIES = CORESIGNAL_COUNTRIES;
+  window.coresignalCountry = coresignalCountry;
+  window.sectorsForCountry = sectorsForCountry;
+}
+
+/* Active-country display helpers used by the dashboard header/footer.
+   For the original Germany corridor these return exactly the previous strings. */
+function activeCountryLabel(){
+  var c = coresignalCountry(GATI_COUNTRY);
+  if (c) return c.label;
+  if (GATI_COUNTRY === "germany") return "Germany";
+  return (window.COUNTRIES||[]).reduce(function(acc,x){ return x.id===GATI_COUNTRY ? x.label : acc; }, "Germany");
+}
+function activeSourceLabel(defaultSrc){
+  return coresignalCountry(GATI_COUNTRY) ? "CoreSignal" : (defaultSrc || "StepStone Germany");
+}
+if (typeof window !== "undefined"){ window.activeCountryLabel = activeCountryLabel; window.activeSourceLabel = activeSourceLabel; }
