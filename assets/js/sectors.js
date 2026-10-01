@@ -190,12 +190,52 @@ if (typeof window !== "undefined"){
 /* Active-country display helpers used by the dashboard header/footer.
    For the original Germany corridor these return exactly the previous strings. */
 function activeCountryLabel(){
+  var j = (typeof jobspickrCountry==="function") ? jobspickrCountry(GATI_COUNTRY) : null;
+  if (j) return j.label;
   var c = coresignalCountry(GATI_COUNTRY);
   if (c) return c.label;
   if (GATI_COUNTRY === "germany") return "Germany";
   return (window.COUNTRIES||[]).reduce(function(acc,x){ return x.id===GATI_COUNTRY ? x.label : acc; }, "Germany");
 }
 function activeSourceLabel(defaultSrc){
-  return coresignalCountry(GATI_COUNTRY) ? "CoreSignal" : (defaultSrc || "StepStone Germany");
+  if ((typeof jobspickrCountry==="function") && jobspickrCountry(GATI_COUNTRY)) return "JobsPickr";
+  if (coresignalCountry(GATI_COUNTRY)) return "CoreSignal";
+  return (defaultSrc || "StepStone Germany");
 }
 if (typeof window !== "undefined"){ window.activeCountryLabel = activeCountryLabel; window.activeSourceLabel = activeSourceLabel; }
+
+/* ============================================================================
+   JOBSPICKR LAYER  (additive — a second multi-country source alongside CoreSignal)
+   Data lives at data/<country-id>/<sector>.csv, same convention. Country ids are
+   prefixed so they never collide with CoreSignal/Germany folders.
+   ============================================================================ */
+const JOBSPICKR_COUNTRIES = [
+  { id: "jp-qatar",             label: "Qatar",                flag: "🇶🇦",
+    tagline: "JobsPickr · construction, hospitality", sectors: ["construction","hospitality"] },
+  { id: "jp-uae",               label: "United Arab Emirates", flag: "🇦🇪",
+    tagline: "JobsPickr · construction, hospitality, logistics", sectors: ["construction","hospitality","logistics"] },
+  { id: "jp-saudi-arabia",      label: "Saudi Arabia",         flag: "🇸🇦",
+    tagline: "JobsPickr · construction", sectors: ["construction"] },
+  { id: "jp-australia",         label: "Australia",            flag: "🇦🇺",
+    tagline: "JobsPickr · healthcare, logistics, construction, hospitality", sectors: ["healthcare","logistics","construction","hospitality"] },
+  { id: "jp-germany", label: "Germany (JobsPickr)",  flag: "🇩🇪",
+    tagline: "JobsPickr · healthcare", sectors: ["healthcare"] }
+];
+function jobspickrCountry(id){ return (JOBSPICKR_COUNTRIES||[]).find(function(c){return c.id===id;})||null; }
+
+/* unified source resolver so one landing page serves both sources via ?src= */
+function countryForSource(src, id){
+  if (src === "jobspickr") return jobspickrCountry(id);
+  return (typeof coresignalCountry==="function") ? coresignalCountry(id) : null;
+}
+function sectorsForSourceCountry(src, id){
+  var c = countryForSource(src, id);
+  if (!c) return SECTORS.slice();
+  return c.sectors.map(getSector).filter(Boolean);
+}
+if (typeof window !== "undefined"){
+  window.JOBSPICKR_COUNTRIES = JOBSPICKR_COUNTRIES;
+  window.jobspickrCountry = jobspickrCountry;
+  window.countryForSource = countryForSource;
+  window.sectorsForSourceCountry = sectorsForSourceCountry;
+}

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GATI · CoreSignal · Country Dashboards</title>
-  <meta name="description" content="CoreSignal multi-country labour-market demand. Choose a destination country, then a sector.">
+  <title>GATI · JobsPickr · Country Dashboards</title>
+  <meta name="description" content="JobsPickr multi-country labour-market demand. Choose a destination country, then a sector.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
@@ -88,7 +88,7 @@
   </div>
   <div class="g-bar"><i></i></div>
   <div id="g-quote"></div>
-  <div class="g-sub">CoreSignal · Multi-country Demand</div>
+  <div class="g-sub">JobsPickr · Multi-country Demand</div>
 </div>
 
 <!-- ====== COUNTRY SELECTION ====== -->
@@ -101,15 +101,15 @@
   </header>
 
   <section class="hero">
-    <p class="eyebrow">CoreSignal · Demand Intelligence</p>
+    <p class="eyebrow">JobsPickr · Demand Intelligence</p>
     <h1>Pick a country to explore its sectors.</h1>
-    <p>CoreSignal multi-source job-posting data, classified to ISCO-08 and ISIC Rev.4. Choose a
+    <p>JobsPickr vendor job-posting data, classified to ISCO-08 and ISIC Rev.4. Choose a
        destination country below, then open a sector dashboard inside it.</p>
   </section>
 
-  <section class="countries" id="cs-country-grid"><!-- filled by script --></section>
+  <section class="countries" id="jp-country-grid"><!-- filled by script --></section>
 
-  <footer class="ft">GATI Foundation · The Convergence Foundation · CoreSignal source · ISCO-08 (ILO), ISIC Rev.4 (UN)</footer>
+  <footer class="ft">GATI Foundation · The Convergence Foundation · JobsPickr source · ISCO-08 (ILO), ISIC Rev.4 (UN)</footer>
 </div>
 
 <script src="assets/js/sectors.js?v=20260725-4"></script>
@@ -117,12 +117,12 @@
   /* short loader, then reveal the CoreSignal country grid */
   (function(){
     var qEl=document.getElementById('g-quote');
-    qEl.innerHTML='Classifying multi-source demand across CoreSignal corridors\u2026';
-    var grid=document.getElementById('cs-country-grid');
-    (window.CORESIGNAL_COUNTRIES||[]).forEach(function(c){
+    qEl.innerHTML='Classifying vendor demand across JobsPickr corridors\u2026';
+    var grid=document.getElementById('jp-country-grid');
+    (window.JOBSPICKR_COUNTRIES||[]).forEach(function(c){
       var a=document.createElement('a');
       a.className='cty on';
-      a.href='sectors.html?country='+encodeURIComponent(c.id);
+      a.href='sectors.html?src=jobspickr&country='+encodeURIComponent(c.id);
       a.innerHTML='<div class="flag">'+c.flag+'</div>'+
         '<h3>'+c.label+'</h3><p>'+c.tagline+'</p>'+
         '<span class="go">Open sectors \u2192</span>';

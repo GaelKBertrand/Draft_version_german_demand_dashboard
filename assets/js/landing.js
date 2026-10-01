@@ -20,8 +20,11 @@
      so links stay exactly as before and default to germany. */
   function _countrySuffix(){
     try {
-      var c = new URLSearchParams(location.search).get("country");
-      return c ? ("&country=" + encodeURIComponent(c)) : "";
+      var qs = new URLSearchParams(location.search);
+      var c = qs.get("country"), src = qs.get("src");
+      var out = c ? ("&country=" + encodeURIComponent(c)) : "";
+      if (src) out += "&src=" + encodeURIComponent(src);
+      return out;
     } catch(e){ return ""; }
   }
 

@@ -189,7 +189,7 @@ function populateFilters(){
 function fillDataBanner(){
   var m = DATA.meta, s = APP.sector;
   var items = [
-    ['Source', s.source || 'StepStone Germany'],
+    ['Source', (typeof activeSourceLabel==="function" ? activeSourceLabel(s.source) : (s.source || 'StepStone Germany'))],
     ['Period', m.dateRange || '—'],
     ['Postings Loaded', fmt(m.scraped)],
     ['In-scope '+s.label+' Postings', fmt(m.total)]

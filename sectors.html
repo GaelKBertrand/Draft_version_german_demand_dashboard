@@ -85,25 +85,34 @@
   </footer>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <script src="assets/js/sectors.js?v=20260725-3"></script>
+  <script src="assets/js/sectors.js?v=20260725-4"></script>
   <script>
     /* Resolve the active CoreSignal country from ?country=, restrict the sector
        cards to that country's sectors, and fill the hero. Germany's own page is
        unaffected (this file is only reached from the CoreSignal grid). */
     (function(){
-      var cid = (new URLSearchParams(location.search)).get("country") || "";
-      var c = (window.coresignalCountry ? window.coresignalCountry(cid) : null);
-      var subset = (window.sectorsForCountry ? window.sectorsForCountry(cid) : (window.SECTORS||[]));
-      window.LANDING_SECTORS = subset;
-      if (c){
+      var qs=new URLSearchParams(location.search);
+      var cid=qs.get("country")||"";
+      var src=(qs.get("src")||"coresignal").toLowerCase();
+      var srcLabel = src==="jobspickr" ? "JobsPickr" : "CoreSignal";
+      var c=(window.countryForSource?window.countryForSource(src,cid):null);
+      var subset=(window.sectorsForSourceCountry?window.sectorsForSourceCountry(src,cid):(window.SECTORS||[]));
+      window.LANDING_SECTORS=subset;
+      window.LANDING_SRC=src;              /* so sector links can carry it onward */
+      /* back-link to the correct source grid */
+      var brand=document.querySelector("a.brand");
+      if(brand){ brand.setAttribute("href", src==="jobspickr"?"jobspickr.html":"coresignal.html"); }
+      var sc=document.querySelector(".chip"); /* first chip = source name */
+      if(sc) sc.textContent=srcLabel;
+      if(c){
         var t=document.getElementById("cs-title"); if(t) t.textContent="Where "+c.label+" is hiring, sector by sector.";
-        var e=document.getElementById("cs-eyebrow"); if(e) e.textContent="CoreSignal corridor \u00b7 "+c.label;
+        var e=document.getElementById("cs-eyebrow"); if(e) e.textContent=srcLabel+" corridor \u00b7 "+c.label;
         var ch=document.getElementById("cs-country-chip"); if(ch) ch.textContent=c.label;
-        document.title="GATI \u00b7 "+c.label+" \u00b7 CoreSignal";
+        document.title="GATI \u00b7 "+c.label+" \u00b7 "+srcLabel;
       }
     })();
   </script>
-  <script src="assets/js/landing.js?v=20260725-3"></script>
+  <script src="assets/js/landing.js?v=20260725-4"></script>
 
 <!-- Back-to-top button -->
 <style>
