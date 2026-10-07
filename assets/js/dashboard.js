@@ -169,9 +169,31 @@ function initDashboard(){
   buildStaticTabs();
   document.getElementById('db-status').hidden = true;
   document.querySelectorAll('.tab-panel').forEach(function(p){ p.hidden = false; });
+  /* Reveal the Country Breakdown tab only for multi-country datasets. */
+  var ctyBtn = document.getElementById('tab-btn-country');
+  if (ctyBtn) ctyBtn.hidden = !(DATA && DATA.countries && Object.keys(DATA.countries.counts).length);
   fillDataBanner();
   renderAll();
   renderExplorer();
+}
+
+/* Country breakdown — reuses the same ranked-bar look as the regional pareto. */
+function renderCountry(){
+  if (!DATA || !DATA.countries) return;
+  var total = DATA.countries.total;
+  var ranked = rankOf(DATA.countries.counts, total);
+  var hd = document.getElementById('country-head');
+  if (hd) hd.textContent = 'Postings by Country (' + ranked.length + ' countries, ' + fmt(total) + ' postings)';
+  pareto('country-pareto', ranked, total, 'Countries ranked by posting volume');
+  var tb = document.getElementById('country-table');
+  if (tb){
+    tb.innerHTML =
+      '<table class="tbl"><thead><tr><th>Country</th><th class="num">Postings</th><th class="num">Share</th></tr></thead><tbody>' +
+      ranked.map(function(d){
+        return '<tr><td>'+esc(d.label)+'</td><td class="num">'+fmt(d.count)+'</td><td class="num">'+d.share.toFixed(1)+'%</td></tr>';
+      }).join('') +
+      '</tbody></table>';
+  }
 }
 
 function populateFilters(){
@@ -242,6 +264,7 @@ function showTab(id, btn){
   if (id==='classify')   renderClassifications(rows);
   if (id==='context')    renderMarketContext(rows);
   if (id==='tiers')      renderTiers();
+  if (id==='country')    renderCountry();
 
   /* Run the heavy requirements extractor lazily — only when the user opens
      a tab that needs it, and only once. This keeps the initial dashboard
@@ -271,6 +294,7 @@ function renderAll(){
   if (APP.activeTab==='classify')   renderClassifications(rows);
   if (APP.activeTab==='context')    renderMarketContext(rows);
   if (APP.activeTab==='tiers')      renderTiers();
+  if (APP.activeTab==='country')    renderCountry();
 }
 
 

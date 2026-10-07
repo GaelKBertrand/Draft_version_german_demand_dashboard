@@ -13,6 +13,14 @@
 (function () {
   var grid = document.getElementById("sector-grid");
   if (!grid || typeof SECTORS === "undefined") return;
+  /* Forward the active ?country= onto each dashboard link so a country card
+     (e.g. germany.html?country=qatar) opens the dashboard on that country's
+     data folder. Germany has no ?country=, so links stay exactly as before. */
+  function _countrySuffix(){
+    try { var c = new URLSearchParams(location.search).get("country");
+          return c ? ("&country=" + encodeURIComponent(c)) : ""; }
+    catch(e){ return ""; }
+  }
 
   var fmt = function (n) { return Number(n).toLocaleString("en-US"); };
 
@@ -36,7 +44,7 @@
       '<div class="sector-card__stat is-loading" id="stat-' + s.id + '">' +
         '<span class="skeleton"></span></div>' +
       '<span class="sector-card__cta">Open dashboard <span class="arw" aria-hidden="true">&rarr;</span></span>' +
-      '<a class="sector-card__link" href="dashboard.html?sector=' + encodeURIComponent(s.id) + '">Open the ' + s.label + ' dashboard</a>';
+      '<a class="sector-card__link" href="dashboard.html?sector=' + encodeURIComponent(s.id) + _countrySuffix() + '">Open the ' + s.label + ' dashboard</a>';
 
     grid.appendChild(card);
 

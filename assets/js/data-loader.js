@@ -417,6 +417,7 @@ function buildDATA(rawRows, diag, sector) {
       req:      req || "",
       benefits: ben || "",
       workType: pick(row, ["Work_Type", "Workplace", "Remote"]) || "",
+      country:  pick(row, ["Country", "country"]) || "",
       jobId:    pick(row, ["Job_ID", "JobId", "Job_Id", "ID"]) || "",
       isicCode: pick(row, ["Employer_ISIC_4", "ISIC_4", "ISIC_Code"]) || "",
       catClear: (function(){
@@ -596,7 +597,18 @@ function buildDATA(rawRows, diag, sector) {
     ? fmtDay(new Date(Math.min.apply(null, dated))) + " – " + fmtDay(new Date(Math.max.apply(null, dated)))
     : "—";
 
+  /* Country breakdown — only when the CSV actually carries a Country column.
+     Single-country StepStone/Germany sheets have no such column, so this stays
+     null and the Country tab never appears. Purely additive. */
+  var countryCounts = {}, countryTotal = 0;
+  recs.forEach(function (r) {
+    var c = (r.country || "").trim();
+    if (c) { countryCounts[c] = (countryCounts[c] || 0) + 1; countryTotal++; }
+  });
+  var countries = countryTotal ? { counts: countryCounts, total: countryTotal } : null;
+
   return {
+    countries: countries,
     lookup: { states: states, isic: isic, isco4: isco4, empTypes: empTypes, weekLabels: weekLabels },
     rows: rows, raw: raw,
     meta: { total: rows.length, dateRange: dateRange, weeks: weekLabels.length,

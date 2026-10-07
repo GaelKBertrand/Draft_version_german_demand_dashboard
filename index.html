@@ -111,7 +111,7 @@
   <footer class="ft">GATI Foundation · The Convergence Foundation · Data classified to ISCO-08 (ILO) and ISIC Rev.4 (UN)</footer>
 </div>
 
-<script src="assets/js/sectors.js?v=20260725-2"></script>
+<script src="assets/js/sectors.js?v=20260725-3"></script>
 <script>
   /* rotating quotes during the loader */
   var QUOTES = [
@@ -133,7 +133,7 @@
     (window.COUNTRIES || []).forEach(function(c){
       var el = document.createElement(c.active ? 'a' : 'div');
       el.className = 'cty ' + (c.active ? 'on' : 'off');
-      if (c.active) el.href = c.id + '.html';
+      if (c.active) el.href = (c.landing || (c.id + '.html'));
       el.innerHTML = '<div class="flag">' + c.flag + '</div>' +
         '<h3>' + c.label + '</h3><p>' + c.tagline + '</p>' +
         (c.active ? '<span class="go">Open dashboards \u2192</span>' : '<span class="soon">Coming soon</span>');

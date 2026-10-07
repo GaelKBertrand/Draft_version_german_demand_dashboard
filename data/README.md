@@ -23,3 +23,27 @@ Description, Requirements, Benefits, Work_Type, Job_URL, Job_ID, Scope_Category`
 
 Rows whose `Scope_Category` (or `Job_Category`) is `Out of Scope` /
 `CLASSIFICATION_FAILED`, or that have no `ISCO_4`, are dropped from the analysis.
+
+## Adding another country (draft cards)
+
+The dashboards are country-generic. To add a country as a draft card next to
+Germany, do two things, nothing else:
+
+1. Drop its CSVs in a new folder: `data/<country-id>/<sector>.csv`
+   (same filenames: healthcare.csv, hospitality.csv, construction.csv, logistics.csv).
+
+2. Add one line to `COUNTRIES` in `assets/js/sectors.js`:
+   `{ id: "<country-id>", label: "<Name>", flag: "<emoji>", active: true,
+      landing: "germany.html?country=<country-id>", tagline: "<short note>" }`
+
+The country card then reuses the existing sector landing and the existing
+dashboards with no new pages. Clicking a sector opens
+`dashboard.html?sector=<id>&country=<country-id>`, which loads that folder.
+
+## Country column and the Country Breakdown tab
+
+New multi-country datasets should carry ALL the Germany columns above, PLUS a
+final `Country` column. When a loaded CSV has a non-empty `Country` column, the
+dashboard shows an extra "Country Breakdown" tab (postings by country). Germany
+StepStone data has no Country column, so that tab never appears there. Nothing
+else changes.

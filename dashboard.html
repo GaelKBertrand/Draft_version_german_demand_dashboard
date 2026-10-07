@@ -10,7 +10,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<link rel="stylesheet" href="assets/css/dashboard.css?v=20260725-2">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=20260725-3">
 </head>
 <body>
 
@@ -51,6 +51,7 @@
   <button class="tab-btn" onclick="showTab('regional',this)">Regional Map</button>
   <button class="tab-btn" onclick="showTab('explorer',this)">Data Explorer</button>
   <button class="tab-btn" onclick="showTab('classify',this)">Classifications</button>
+  <button class="tab-btn" id="tab-btn-country" onclick="showTab('country',this)" hidden>Country Breakdown</button>
 </nav>
 
 <!-- LOAD / ERROR STATUS -->
@@ -386,6 +387,23 @@
   </div>
 </section>
 
+<!-- ====== COUNTRY BREAKDOWN (only shown when the CSV carries a Country column) ====== -->
+<section id="tab-country" class="tab-panel" hidden>
+  <div class="insight-box">
+    <b>Country breakdown.</b> This view appears only for multi-country datasets (for example vendor or
+    CoreSignal feeds that carry a <code>Country</code> column). Single-country StepStone data does not
+    show it. Counts below are across all postings in this sector file, before the header filters.
+  </div>
+  <div class="card">
+    <h3 class="card__title" id="country-head">Postings by Country</h3>
+    <div id="country-pareto" class="chart"></div>
+  </div>
+  <div class="card">
+    <h3 class="card__title">Country detail</h3>
+    <div id="country-table"></div>
+  </div>
+</section>
+
 <!-- ====== STATIC (per-sector) TABS mount here ====== -->
 <div id="static-tabs"><!-- About/Methods, Qualifications etc. injected from /content --></div>
 
@@ -393,12 +411,12 @@
   GATI Foundation · <span id="foot-sector">Sector</span> Labour Market Intelligence · Data: StepStone Germany · Classification: ISCO-08 (ILO), employer sector (ISIC Rev.4) · Build 20260725-2
 </footer>
 
-<script src="assets/js/sectors.js?v=20260725-2"></script>
-<script src="assets/js/data-loader.js?v=20260725-2"></script>
-<script src="assets/js/requirements-extractor.js?v=20260725-2"></script>
-<script src="assets/js/role-meta.js?v=20260725-2"></script>
-<script src="assets/js/chart-kit.js?v=20260725-2"></script>
-<script src="assets/js/dashboard.js?v=20260725-2"></script>
+<script src="assets/js/sectors.js?v=20260725-3"></script>
+<script src="assets/js/data-loader.js?v=20260725-3"></script>
+<script src="assets/js/requirements-extractor.js?v=20260725-3"></script>
+<script src="assets/js/role-meta.js?v=20260725-3"></script>
+<script src="assets/js/chart-kit.js?v=20260725-3"></script>
+<script src="assets/js/dashboard.js?v=20260725-3"></script>
 
 <!-- Back-to-top button -->
 <style>
