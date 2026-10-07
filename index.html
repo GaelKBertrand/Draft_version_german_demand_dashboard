@@ -65,6 +65,11 @@
     .hero h1{font-size:clamp(26px,4vw,40px);font-weight:800;color:var(--teal);margin:10px 0 8px;line-height:1.15}
     .hero p{color:#4A6260;font-size:14.5px;max-width:640px;line-height:1.7}
     .countries{max-width:1060px;margin:30px auto 60px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+    #country-grid{margin-bottom:18px}
+    .src-head{max-width:1060px;margin:26px auto 0;padding-top:24px;border-top:1px solid #E2ECEC}
+    .src-head h2{font-size:15px;font-weight:700;letter-spacing:.3px;color:var(--teal)}
+    .src-head p{font-size:12.5px;color:var(--soft);line-height:1.6;max-width:640px;margin-top:5px}
+    #source-grid{margin-top:18px}
     .cty{background:#fff;border:1px solid #E2ECEC;border-radius:16px;padding:26px 24px;text-decoration:none;color:inherit;
       display:block;position:relative;transition:transform .18s ease, box-shadow .18s ease}
     .cty.on:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(15,91,90,.14);border-color:var(--teal2)}
@@ -108,6 +113,12 @@
 
   <section class="countries" id="country-grid"><!-- filled by script --></section>
 
+  <div class="src-head" id="source-head">
+    <h2>Data sources</h2>
+    <p>Multi-country vendor and API feeds, standardised to the same ISCO-08 schema. Each opens the same sector dashboards, with a Country Breakdown tab added.</p>
+  </div>
+  <section class="countries" id="source-grid"><!-- filled by script --></section>
+
   <footer class="ft">GATI Foundation · The Convergence Foundation · Data classified to ISCO-08 (ILO) and ISIC Rev.4 (UN)</footer>
 </div>
 
@@ -128,17 +139,22 @@
     setQ();
     var rot = setInterval(setQ, 1400);
 
-    /* build the country grid from the shared registry in sectors.js */
-    var grid = document.getElementById('country-grid');
-    (window.COUNTRIES || []).forEach(function(c){
-      var el = document.createElement(c.active ? 'a' : 'div');
-      el.className = 'cty ' + (c.active ? 'on' : 'off');
-      if (c.active) el.href = (c.landing || (c.id + '.html'));
-      el.innerHTML = '<div class="flag">' + c.flag + '</div>' +
-        '<h3>' + c.label + '</h3><p>' + c.tagline + '</p>' +
-        (c.active ? '<span class="go">Open dashboards \u2192</span>' : '<span class="soon">Coming soon</span>');
-      grid.appendChild(el);
-    });
+    /* build the country grid + the data-source grid from the shared registries
+       in sectors.js. Same card markup; sources use an `icon` instead of a flag. */
+    function buildCards(list, grid){
+      if (!grid) return;
+      (list || []).forEach(function(c){
+        var el = document.createElement(c.active ? 'a' : 'div');
+        el.className = 'cty ' + (c.active ? 'on' : 'off');
+        if (c.active) el.href = (c.landing || (c.id + '.html'));
+        el.innerHTML = '<div class="flag">' + (c.flag || c.icon || '') + '</div>' +
+          '<h3>' + c.label + '</h3><p>' + c.tagline + '</p>' +
+          (c.active ? '<span class="go">Open dashboards \u2192</span>' : '<span class="soon">Coming soon</span>');
+        grid.appendChild(el);
+      });
+    }
+    buildCards(window.COUNTRIES, document.getElementById('country-grid'));
+    buildCards(window.SOURCES,   document.getElementById('source-grid'));
 
     /* reveal after the load window (5s) */
     setTimeout(function(){

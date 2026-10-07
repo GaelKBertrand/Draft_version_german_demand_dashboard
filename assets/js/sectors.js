@@ -29,6 +29,27 @@ const GATI_COUNTRY = (function(){
 })();
 if (typeof window !== "undefined"){ window.COUNTRIES = COUNTRIES; window.GATI_COUNTRY = GATI_COUNTRY; }
 
+/* ---- DATA SOURCE LAYER ----------------------------------------------------
+   Vendor / API feeds are organised exactly like a country: data/<id>/<sector>.csv.
+   They are NOT countries (each feed spans several countries), so they live in
+   their own registry and render as a separate "Data sources" group on the
+   landing page. Each opens the shared sector landing pointed at its own folder
+   (germany.html?country=<id>); the Country Breakdown tab then appears because
+   these files carry a Country column. To add another feed: drop its folder in
+   /data and add one line here. Nothing else changes. */
+const SOURCES = [
+  { id: "coresignal", label: "CoreSignal", icon: "🛰️", active: true,
+    landing: "germany.html?country=coresignal",
+    tagline: "Multi-country API feed · healthcare, construction, hospitality, logistics" },
+  { id: "jobspickr", label: "JobsPickr", icon: "🧲", active: true,
+    landing: "germany.html?country=jobspickr",
+    tagline: "Vendor job-posting feed · Gulf, Australia, Germany" },
+  { id: "theirstack", label: "TheirStack", icon: "🗂️", active: true,
+    landing: "germany.html?country=theirstack",
+    tagline: "Vendor feed · healthcare across EU & Taiwan" }
+];
+if (typeof window !== "undefined"){ window.SOURCES = SOURCES; }
+
 const SECTORS = [
   {
     id: "healthcare", label: "Healthcare", csv: "healthcare.csv",

@@ -169,17 +169,37 @@ function initDashboard(){
   buildStaticTabs();
   document.getElementById('db-status').hidden = true;
   document.querySelectorAll('.tab-panel').forEach(function(p){ p.hidden = false; });
-  /* Reveal the Country Breakdown tab only for multi-country datasets. */
+  /* Country Breakdown tab is always present. For multi-country vendor/API feeds
+     it shows the breakdown; for single-country StepStone data it shows a short
+     "no country dimension" note instead of disappearing. */
   var ctyBtn = document.getElementById('tab-btn-country');
-  if (ctyBtn) ctyBtn.hidden = !(DATA && DATA.countries && Object.keys(DATA.countries.counts).length);
+  if (ctyBtn) ctyBtn.hidden = false;
   fillDataBanner();
   renderAll();
   renderExplorer();
 }
 
-/* Country breakdown — reuses the same ranked-bar look as the regional pareto. */
+/* Country breakdown — reuses the same ranked-bar look as the regional pareto.
+   When the dataset carries no Country column (single-country StepStone feeds),
+   render a clean empty-state instead of leaving the panel blank. */
 function renderCountry(){
-  if (!DATA || !DATA.countries) return;
+  var hd = document.getElementById('country-head');
+  var par = document.getElementById('country-pareto');
+  var tb = document.getElementById('country-table');
+  if (!DATA || !DATA.countries || !Object.keys(DATA.countries.counts || {}).length){
+    if (hd) hd.textContent = 'Country breakdown not available for this dataset';
+    if (par) par.innerHTML =
+      '<div class="country-empty">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">' +
+          '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 2.5 15.4 0 18M12 3c-2.5 2.6-2.5 15.4 0 18"/>' +
+        '</svg>' +
+        '<h4>Single-country dataset</h4>' +
+        '<p>This is a StepStone Germany feed, so every posting is in one country and there is nothing to break down. ' +
+        'The Country Breakdown appears automatically for the multi-country vendor and API feeds (CoreSignal, JobsPickr, TheirStack).</p>' +
+      '</div>';
+    if (tb) tb.innerHTML = '';
+    return;
+  }
   var total = DATA.countries.total;
   var ranked = rankOf(DATA.countries.counts, total);
   var hd = document.getElementById('country-head');

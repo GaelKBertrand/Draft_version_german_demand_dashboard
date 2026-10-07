@@ -96,9 +96,18 @@
         var cid=new URLSearchParams(location.search).get("country");
         if(!cid || cid==="germany") return;
         var c=(window.COUNTRIES||[]).filter(function(x){return x.id===cid;})[0];
-        var label=c?c.label:cid.charAt(0).toUpperCase()+cid.slice(1);
-        var eb=document.querySelector(".eyebrow"); if(eb) eb.textContent="Global Skills Mobility · "+label+" corridor";
-        var h=document.querySelector(".hero__title"); if(h) h.textContent="Where "+label+" is hiring, sector by sector.";
+        var src=(window.SOURCES||[]).filter(function(x){return x.id===cid;})[0];
+        var label=(c||src)?(c||src).label:cid.charAt(0).toUpperCase()+cid.slice(1);
+        var eb=document.querySelector(".eyebrow");
+        var h=document.querySelector(".hero__title");
+        if(src){
+          /* data-source feed: it spans several countries, so frame it as a source, not a corridor */
+          if(eb) eb.textContent="Global Skills Mobility · "+label+" data source";
+          if(h) h.textContent=label+" demand, sector by sector.";
+        }else{
+          if(eb) eb.textContent="Global Skills Mobility · "+label+" corridor";
+          if(h) h.textContent="Where "+label+" is hiring, sector by sector.";
+        }
         document.title="GATI · "+label+" · Skills-Mobility Dashboards";
       }catch(e){}
     })();
