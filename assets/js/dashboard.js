@@ -87,8 +87,8 @@ window.addEventListener('load', function(){
   /* header + switcher + footer chrome */
   document.getElementById('hdr-t1').textContent = sector.label + ' Demand Intelligence';
   document.getElementById('hdr-t2').textContent =
-    ((typeof activeCountryLabel==="function"?activeCountryLabel():(APP.region?APP.region.label:'Germany'))) + ' · ' + ((typeof activeSourceLabel==="function"?activeSourceLabel(sector.source):(sector.source||'StepStone Germany')));
-  document.getElementById('map-head').textContent = sector.label + ' Vacancies Across ' + (typeof activeCountryLabel==="function"?activeCountryLabel():(APP.region? APP.region.label : 'Germany'));
+    (APP.region ? APP.region.label : 'Germany') + ' · ' + (sector.source || 'StepStone Germany');
+  document.getElementById('map-head').textContent = sector.label + ' Vacancies Across ' + (APP.region? APP.region.label : 'Germany');
   document.getElementById('foot-sector').textContent = sector.label;
   applyCatTerms();
   document.title = 'GATI · ' + sector.label + ' Demand Intelligence';
@@ -189,7 +189,7 @@ function populateFilters(){
 function fillDataBanner(){
   var m = DATA.meta, s = APP.sector;
   var items = [
-    ['Source', (typeof activeSourceLabel==="function" ? activeSourceLabel(s.source) : (s.source || 'StepStone Germany'))],
+    ['Source', s.source || 'StepStone Germany'],
     ['Period', m.dateRange || '—'],
     ['Postings Loaded', fmt(m.scraped)],
     ['In-scope '+s.label+' Postings', fmt(m.total)]
@@ -388,7 +388,7 @@ function renderAlert(rows){
   rows.forEach(function(r){ if(r[1]>=0){ var c=DATA.lookup.isic[r[1]]; isicc[c]=(isicc[c]||0)+1; } });
   var tr = topKeyOf(ic)||'N/A', te = topKeyOf(isicc)||'N/A';
   var el=document.getElementById('ov-alert');
-  if(el) el.innerHTML='<b>Key finding:</b> '+esc((typeof activeCountryLabel==="function"?activeCountryLabel():'Germany'))+'\'s '+esc(APP.sector.label.toLowerCase())+
+  if(el) el.innerHTML='<b>Key finding:</b> Germany\'s '+esc(APP.sector.label.toLowerCase())+
     ' sector posted <b>'+fmt(total)+' vacancies</b> over the '+esc(DATA.meta.dateRange||'collection')+' window. '+
     'Most-advertised occupation: <b>'+esc(tr)+'</b>. Largest hiring sector: <b>'+esc(te)+'</b>. '+
     'All figures reflect the current header filters (state, employer type, duplicate Job IDs, unclear categories).';
