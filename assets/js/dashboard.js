@@ -162,8 +162,34 @@ function showError(err, url){
 }
 
 /* ======= INIT ============================================================= */
+/* Vendor/API feeds (CoreSignal, JobsPickr, TheirStack) often carry no employer-
+   sector (ISIC) classification and have some occupations the classifier left
+   unlabelled. The two "Hide" filters are tuned for the fully-classified StepStone
+   data, and on a sparse feed they would hide most postings and make the dataset
+   look tiny. So when coverage is low we start with those two filters OFF (the
+   checkboxes stay, the user can switch them on). Fully-classified data such as
+   Germany is unaffected because its coverage is high. */
+function relaxFiltersIfSparse(){
+  try {
+    var rows = (DATA && DATA.rows) || [];
+    if (!rows.length) return;
+    /* Employer-category coverage is the discriminator: fully-classified StepStone
+       data has it (so both filters stay ON, exactly as before), vendor/API feeds
+       do not. When it is low we start BOTH "Hide" filters OFF so the feed shows
+       all its postings instead of collapsing to a handful. The checkboxes remain,
+       so the user can switch either back on. */
+    var catClear = 0;
+    rows.forEach(function(r){ if (r[8] === 1) catClear++; });
+    if (catClear / rows.length < 0.5){
+      APP.filterClearCat = false;
+      APP.filterClearOcc = false;
+    }
+  } catch (e) { /* leave defaults on if anything is off */ }
+}
+
 function initDashboard(){
   computePartTime();
+  relaxFiltersIfSparse();
   populateFilters();
   buildRoleTab();
   buildStaticTabs();
